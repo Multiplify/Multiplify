@@ -1,0 +1,119 @@
+import random
+
+class Person:
+    def __init__ (self, name, level, attack, armor, health, gold, stagger, exp):
+        self.name = name
+        self.level = level
+        self.attack = attack
+        self.armor = armor
+        self.health = health
+        self.gold = gold
+        self.stagger = stagger
+        self.exp = exp
+
+    def stats(self):
+        print(f"{self.name} level {self.level }\n Attack:{self.attack}\n Armor:{self.armor}\n Health:{self.health}\n Gold:{self.gold}\n")
+
+    def stag(self):
+        self.stagger = True
+
+    def unStag(self):
+        self.stagger = False
+
+
+
+
+    # This method will determine whether or not the player has leveled up
+    def lup(self):
+        if (self.exp / self.level) >= 10:
+            self.exp -= (self.level * 10)
+            self.level += 1
+            print(f"You have leveled up! You are now level {self.level}")
+            points = 1 + self.level
+            count = points + points
+            while count != points:
+                choice = input(f"You have {count - points} attribute points to allocate. You can level up Armor or Attack, which do you choose? ")
+                choice = choice.lower()
+                if choice not in ("armor", "attack"):
+                    print("Try again")
+                elif choice == ("armor"):
+                    self.armor += 1
+                    count -= 1
+                elif choice == ("attack"):
+                    self.attack += 1
+                    count -= 1
+
+            points = 0
+            self.lup()
+
+
+
+
+
+
+
+
+
+
+
+
+        # Only allows names without numbers in them
+
+while True:
+    pName = input("What is your name? ")
+    if any(map(str.isdigit, pName)) == True:
+        continue
+    else:
+        break
+
+Player = Person (pName ,1 , 10, 10, 100, 10, False, 0)
+Player.stats()
+Monster = Person ("Spider" ,1, 5, 5, 100, 10, False, 0)
+Monster.stats()
+
+Player.lup()
+
+
+print("You prepare for battle with the spider. Your blade drawn, the spider draws in close. Will you use a heavy attack (h) or a light attack (l)? ")
+
+def battle (Player, npc):    
+    while Player.health > 0 and npc.health > 0:
+        playerAttack = input("Heavy (h) or Light attack (l). ").lower()
+        if playerAttack == "h":
+            print("You use a heavy attack, slashing at the spider wildly.")
+            fight(Player, npc, playerAttack)
+        elif playerAttack == "l":
+            print("You attack lightly, darting within striking range just long enough to land a blow.")
+            fight(Player, npc, playerAttack)
+
+
+
+def fight(player, npc, playerAttack):
+        if playerAttack == "h":
+            crit = rNum(1,10) + player.attack
+            if crit == player.attack + 10:
+                crit = crit * 2
+                print(f"You land a critical strike! Damage is doubled to {crit}. ")
+                npc.health -= crit
+                if npc.health - crit < 1:
+                    print("You slay the spider, he lays dead before you vanquished. ")
+            else:
+                print(f"You deal {crit} damage. ")
+                npc.health -= crit
+                if npc.health - crit < 1:
+                    print("He dead yo. ")
+        elif playerAttack == "l":
+            npc.health -= player.attack
+            print(f"You deal {player.attack} damage. ")
+        
+    
+def rNum(x, y) :
+    num = random.randint(int(x),int(y))
+    return num 
+    
+battle(Player, Monster)
+
+Player.stats()
+Monster.stats()
+
+

@@ -6,14 +6,14 @@ import time
 
 
 def main():
-
+# Create a crit chance class
 # Class we are using for defining our player as well as opponents
     class Person:
         def __init__ (self, name, level, attack, armor, health, gold, stagger, exp): # To-Do Magic, Defense Level, Agility, Weapon type
             self.name = name
             self.level = level
             self.attack = attack
-            self.armor = armor # Yet to be implemented
+            self.armor = armor # Armor / 10 determines how much damage is negated
             self.health = health
             self.gold = gold # Yet to be implemented
             self.stagger = stagger # Yet to be implemented
@@ -70,14 +70,27 @@ def main():
     Player.stats()
 
     #Introduces enemy
-    Monster = Person ("Spidony" ,1, 10, 5, 100, 10, False, 33)
+    Monster = Person ("Artin Spider" ,1, 10, 5, 100, 10, False, 33)
     print1by1(f"Your opponent is {Monster.name}, a viscous monster causing pain to the people of the nearby town of Artin. ")
     Monster.stats()
-
-    #First battle
-    battle(Player, Monster)
-
+    time.sleep(1)
+    print1by1("What will you do?")
+    time.sleep(1)
+    while True:
+        choice = input(" I choose to: Fight or Run?. ").lower()
+        if choice not in("fight", "run"):
+            print("You haven't got time for that! Choose one quickly. Fight or Run?")
+        elif choice == ("fight"):
+            battle(Player, Monster)
+            break
+        elif choice == ("run"):
+            print1by1(f"You back away from the {npc.name} in fear, you stumble backwards and fall into his web. Nobody will ever find your body.")
+            exit(0)
+    
     Monster1 = Person("Big Spider" ,2, 10, 10, 100, 10, False, 66)
+    print1by1(f"Prepare yourself for the next battle. You will now face {Monster1.name}. ")
+    Monster1.stats()
+    
     #Second battle
     battle(Player, Monster1)
 
@@ -87,54 +100,88 @@ def main():
 # Armor and stagger still unimplemented
 def battle (Player, npc):
     while Player.health > 0 and npc.health > 0:
-        playerAttack = input("You are now in battle! Heavy (h) or Light attack (l): ").lower()
+        playerAttack = input("\nYou are now in battle! Heavy (h) or Light attack (l): ").lower()
         if playerAttack in ("h", "heavy"):
-            print("You use a heavy attack, slashing at the spider wildly.\n")
+            print("\nYou use a heavy attack, slashing at the spider wildly.\n")
             fight(Player, npc, playerAttack)
         elif playerAttack in ("l" , "light"):
-            print("You attack lightly, darting within striking range just long enough to land a blow.\n")
+            print("\nYou attack lightly, darting within striking range just long enough to land a blow.\n")
             fight(Player, npc, playerAttack)
 
 # Depending on the choice of heavy or light attack we have different results.
 # Armor and stagger still unimplemented
 def fight(player, npc, playerAttack):
         if playerAttack in ("h", "heavy"):
-            crit = rNum(1,player.attack)
-            if crit == player.attack:  # If the player gets a perfect roll double the damage on heavy attacks
+            damage = rNum(1,player.attack)
+            p = rNum(1,10) # Crit chance here is set to 10% 
+            if damage == player.attack and p == 10:  # If the player gets a perfect roll AND their crit chance procs, double the damage on heavy attacks
+                crit = damage
                 crit = crit * 2
-                print(f"You land a critical strike! Damage is doubled to {crit}. ")
                 npc.health -= crit
+                print(f"You land a critical strike! Damage is doubled to {crit}. ")
+                print(f"The {npc.name} has {npc.health} health remaining. ")
                 attack = npcAttack(npc.attack, rNum(1,2)) # Calculates how much damage the NPC does to us
-                player.health -= attack
+                playerArm = calcArmor(player)
+                attack -= playerArm
+                if attack < 1:
+                    print(f"Your armor completely negates the {npc.names} attack. ")
+                else:
+                    player.health -= attack
+                    print(f"You take {attack} damage from the {npc.name} . You have {player.health} health remaining. ")
                 if npc.health < 1:
                     print(f"You slay the {npc.name}, he lays dead before you vanquished. ")
                     player.exp += npc.exp # When the player defeats a monster, they gain the monsters exp value
-                    Player.lup() # Checks if the player can level up
+                    player.lup() # Checks if the player can level up
                 elif player.health < 1:
                     print(f"You are vanquished, you fall in defeat to the {npc.name} .")
+                    exit(0)
             else:
-                print(f"You deal {crit} damage. ")
-                npc.health -= crit
+                npcArm = calcArmor(npc)
+                playerArm = calcArmor(player)
                 attack = npcAttack(npc.attack, rNum(1,2))
-                player.health -= attack
+                attack -= playerArm
+                damage -= npcArm
+                if damage < 1:
+                    print(f"Your attack is completely negated by the {npc.name} armor. ")
+                else:
+                    npc.health -= damage
+                    print(f"You deal {damage} damage. The {npc.name} has {npc.health} health remaining. ")
+                if attack < 1:
+                    print(f"Your armor completely negates the {npc.name}'s attack")
+                else:
+                    player.health -= attack
+                    print(f"The {npc.name} deals {attack} damage. You have {player.health} HP remaining. ")
                 if npc.health < 1:
                     print("He dead yo. ")
                     player.exp += npc.exp # When the player defeats a monster, they gain the monsters exp value
                     player.lup() # Checks if the player can level up
                 elif player.health < 1:
                     print(f"You are vanquished, you fall in defeat to the {npc.name} .")
+                    exit(0)
         elif playerAttack in ("l" , "light"):
             lat = rNum(1, (player.attack/2))
-            npc.health -= lat
+            npcArm = calcArmor(npc)
+            playerArm = calcArmor(player)
+            lat -= npcArm
+            if lat < 1:
+                print(f"The {npc.names} armor completely negates your attack. ")
+            else:
+                npc.health -= lat
+                print(f"You deal {lat} damage to the {npc.name}. The {npc.name} has {npc.health} remaining. ")
             attack = npcAttack(npc.attack, rNum(1,2))
-            player.health -= attack
-            print(f"You deal {lat} damage. ")
+            attack -= playerArm
+            if attack < 1:
+                print(f"Your armor completely negate the {npc.name}'s attack. ")
+            else:
+                player.health -= attack
+                print(f"The {npc.name} does {attack} damage, you have {player.health} HP remaining. " )
             if npc.health < 1:
                 print("Light attack death")
                 player.exp += npc.exp # When the player defeats a monster, they gain the monsters exp value
                 player.lup() # Checks if the player can level up
             elif player.health < 1:
                     print(f"You are vanquished, you fall in defeat to the {npc.name} .")
+                    exit(0)
 
 # Random number function
 def rNum(x, y) :
@@ -147,13 +194,11 @@ def npcAttack(dmg, typ):
         attack = rNum(1,dmg)
         if attack == dmg: # determines if a critical strike has occured.
             attack += attack
-            print(f"The monster lands a critical strike dealing {attack} damage. ")
             return attack
         else:
             return attack
     elif typ == 2:
         attack = rNum(1, dmg/2)
-        print(f"The monster slices into you doing {attack} damage. ")
         return attack
 
 # Slow scrolls text
@@ -163,9 +208,15 @@ def print1by1(text, delay=0.05):
         sys.stdout.flush()
         time.sleep(delay)
     print
+    
+def calcArmor(char):
+    negate = round(char.armor/10)
+    return negate
 
 
 
 
 if __name__ == "__main__":
     main()
+
+

@@ -1,0 +1,308 @@
+import turtle
+import time
+import random
+
+# Draw initial screen/ Is this called the canvas?
+wn = turtle.Screen()
+wn.title("Cool Game Bro")
+wn.bgcolor("grey")
+wn.setup(width=800, height=600)
+wn.tracer(0)
+
+# Basic variables to track the relevant player stats.
+tempPoints = 0
+points = 0
+life = 3
+
+# main player character This is you!
+character = turtle.Turtle()
+character.speed(0)
+character.shape("circle")
+character.color("yellow")
+character.penup()
+character.goto(0, 0)
+
+# Projectile attempt. Never got this to work.
+
+projectile = turtle.Turtle()
+projectile.speed(0)
+projectile.shape("triangle")
+projectile.color("yellow")
+projectile.pendown()
+projectile.goto(character.xcor(), character.ycor())
+projectile.hideturtle()
+
+# Warp box that moves around on the screen, if the player touches it they lose a life.
+
+warp = turtle.Turtle()
+warp.speed(0)
+warp.shape("square")
+warp.color("black")
+warp.penup()
+warp.goto(-100, -100)
+warp.dx = 1
+
+# Black box for berries to stay inside of
+berry = turtle.Turtle()
+berry.speed(0)
+berry.shape("square")
+berry.penup()
+berry.goto(random.randint(-380,380) , random.randint(-280,280))
+
+# A shape that follows the character when they are moving around the screen
+follow = turtle.Turtle()
+follow.speed(0)
+follow.shape("triangle")
+follow.goto(random.randint(-380,380) , random.randint(-280,280))
+
+# Shows current points in top left corner
+text = turtle.Turtle()
+text.hideturtle()
+text.color('blue')
+style = ('Courier', 30, 'italic')
+text.penup()
+text.sety(250)
+text.setx(-250)
+text.write(points, font=style, align='right')
+
+
+# Filled in red circle to indicate where a player had gathered berries
+c = turtle.Turtle()
+r = 50
+c.shape("circle")
+c.penup()
+c.sety(berry.ycor())
+c.setx(berry.xcor())
+c.circle(r)
+c.fillcolor("red")
+
+# Never got this to work right
+treeAnimation = turtle.Turtle()
+treeAnimation.shape("triangle")
+treeAnimation.color("green")
+treeAnimation.penup()
+treeAnimation.hideturtle()
+
+
+# Reads key presses that occur ever 30 ms and processes them, allows me to use multiple key press inputs for diagonal and
+# and character warp movements. Taken from (https://stackoverflow.com/questions/47879608/how-to-bind-several-key-presses-together-in-turtle-graphics)
+def process_events():
+    events = tuple(sorted(key_events))
+
+    if events and events in key_event_handlers:
+        (key_event_handlers[events])()
+
+    key_events.clear()
+
+    wn.ontimer(process_events, 30)
+
+# Adds key presses to my events tuple
+def Up():
+    key_events.add('w')
+def Left():
+    key_events.add('a')
+def Down():
+    key_events.add('s')
+def Right():
+    key_events.add('d')
+def Space():
+    key_events.add('p')
+def Cut():
+    key_events.add('e')
+
+# Functions that occur from after stimulation by my process function above
+def charUp():
+    y = character.ycor()
+    y += 10
+    character.sety(y)
+
+def charLeft():
+    x = character.xcor()
+    x -= 10
+    character.setx(x)
+
+def charRight():
+    x = character.xcor()
+    x += 10
+    character.setx(x)
+
+def charDown():
+    y = character.ycor()
+    y -= 10
+    character.sety(y)
+
+def warpForward():
+    y = character.ycor()
+    y += 100
+    character.sety(y)
+
+def warpBackwards():
+    y = character.ycor()
+    y -= 100
+    character.sety(y)
+
+def upLeft():
+    y = character.ycor()
+    y += 10
+    character.sety(y)
+    x = character.xcor()
+    x -= 10
+    character.setx(x)
+
+def upRight():
+    y = character.ycor()
+    y += 10
+    character.sety(y)
+    x = character.xcor()
+    x += 10
+    character.setx(x)
+
+def downRight():
+    y = character.ycor()
+    y -= 10
+    character.sety(y)
+    x = character.xcor()
+    x += 10
+    character.setx(x)
+
+def downLeft():
+    y = character.ycor()
+    y -= 10
+    character.sety(y)
+    x = character.xcor()
+    x -= 10
+    character.setx(x)
+
+
+# I wanted to have a green triangle show up when a character pressed the E button for maybe half a second and then dissappear
+# Just a visual indication that the player was cutting a tree but I could figure out how to get it to appear momentarily and then disappear
+def CutTree():
+    y = character.ycor()
+    y += 5
+    treeAnimation.sety(y)
+    x = character.xcor()
+    x += 5
+    treeAnimation.setx(x)
+    treeAnimation.showturtle()
+
+
+
+
+
+key_event_handlers = {
+    ('w',): charUp,
+    ('a',): charLeft,
+    ('d',): charRight,
+    ('s',): charDown,
+    ('a', 'w'): upLeft,
+    ('d', 'w'): upRight,
+    ('d', 's'): downRight,
+    ('a', 's'): downLeft,
+    ('p', 'w'): warpForward,
+    ('p', 's'): warpBackwards,
+    ('e',): CutTree # Never fully implemented
+}
+
+key_events = set()
+
+wn.onkeypress(Up, 'w')
+wn.onkeypress(Left, 'a')
+wn.onkeypress(Right, 'd')
+wn.onkeypress(Down, 's')
+wn.onkeypress(Space, 'space')
+wn.onkeypress(Cut, 'e')
+
+wn.listen()
+process_events()
+
+while True:
+    wn.update()
+
+
+
+    # Moves my warp cube around. Noticeable lag when the character moves. Not sure why it can't run smoothly
+    warp.setx(warp.xcor() + warp.dx)
+
+    if warp.xcor() > 400:
+        warp.dx *= -1
+    if warp.xcor() < -400:
+        warp.dx *= -1
+    # Edge detection for my character
+    if character.xcor() > 380:
+        character.setx(380)
+    elif character.xcor() < -385:
+        character.setx(-385)
+    elif character.ycor() < -280:
+        character.sety(-280)
+    elif character.ycor() > 287:
+        character.sety(287)
+
+
+    # This really slows my game down. The win screen (I think) is constantly just printing over and over again now that I have got more than 999 points.
+    # How can I make this screen print only once and maybe even freeze the background game? Right now it does kind of a cool slowmo effect, but thats just
+    # from over consumption of resources I think.
+    if points > 999:
+        text2 = turtle.Turtle()
+        text2.setx(300)
+        text2.sety(-100)
+        style = ('Courier', 30, 'bold')
+        text2.write(f"You win with {points} points!" , font=style, align='right')
+
+
+
+
+    # Black warp cube logic if touch player warps to center of screen and removes one life.
+    # If lives fully depleted prompts the user to restart the game.
+    # Upon restart game is completely unresponsive and wont work again. Not sure why.
+    # If lives aren't depleted warps character to the center of the map
+    if character.xcor() < warp.xcor() + 20 and character.xcor() > warp.xcor() - 20 and character.ycor() > warp.ycor() -20 and character.ycor() < warp.ycor() + 20:
+        if life == 1:
+            turtle.write("You have died")
+            life = 3
+            time.sleep(2)
+            res = turtle.textinput("GameOver", "Try Again? ").lower()
+            if res == ("yes"):
+                life = 3
+            else:
+                exit()
+        else:
+            character.goto(0, 0)
+            life -= 1
+    # Red circle (Berry) logic
+    # Draws a berry, if a player touches it they get points
+    # Berry warps to new location, points redraws self.
+    if character.xcor() < berry.xcor() + 20 and character.xcor() > berry.xcor() - 20 and character.ycor() > berry.ycor() -20 and character.ycor() < berry.ycor() + 20:
+        tempPoints += 1000
+        c.penup()
+        c.goto(berry.xcor(), berry.ycor())
+        c.pendown()
+        c.begin_fill()
+        c.circle(10)
+        c.end_fill()
+        berry.goto(random.randint(-380,380),random.randint(-280,280))
+        if tempPoints > points:
+            points = tempPoints
+            text.clear()
+            text.write(points, font=style, align='right')
+
+
+    # Follows the character around.
+    if follow.xcor() != character.xcor():
+        if character.xcor() < follow.xcor():
+            x = follow.xcor()
+            x -= .2
+            follow.goto(x, follow.ycor())
+        elif character.xcor() > follow.xcor():
+            x = follow.xcor()
+            x += .2
+            follow.goto(x, follow.ycor())
+
+    if follow.ycor() != character.xcor():
+        if character.ycor() < follow.ycor():
+            y = follow.ycor()
+            y -= .2
+            follow.goto(follow.xcor(), y)
+        if character.ycor() > follow.ycor():
+            y = follow.ycor()
+            y += .2
+            follow.goto(follow.xcor(), y)

@@ -1,0 +1,27 @@
+let str = "String";
+let arr = [];
+// converts string to array for easy manipulation
+str = Array.from(str);
+
+function recursion(string1) {
+  // If array is empty we are finished, return the completed array. (Base Case)
+  if (string1.length == 0){
+  	return arr;
+    }
+  else {
+    //Create a placeholder array to store a value
+    var placeholder = [];
+    // Shift the first value from the array onto placeholde
+    placeholder = string1.shift()
+    // Unshift the value from placeholder onto the first posiiton in the array
+    arr.unshift(placeholder)
+    // Do it again
+    recursion(string1)
+  }
+}
+// Initial call
+recursion(str);
+// Reform array into a string
+str = arr.join("")
+// Print it out for everyone to admire
+console.log(str)
